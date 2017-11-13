@@ -18,25 +18,24 @@ public class RedisCacheManager implements CacheManager {
 	private Map<String,JedisConnectionFactory> connectionFactoryMap ;
 	@Override
 	public Cache<Object, Object> getCache(String name) throws CacheException {
-		System.err.println("******** cache-name = " + name);
-		Cache<Object,Object> cache = CACHES.get(name) ; // 获得已经保存的缓存对象
-		if (cache == null) {	// 没有缓存对象
+		Cache<Object,Object> cache = CACHES.get(name) ; 
+		if (cache == null) {	// 还没有创建该缓存管理的对象就需要进行对象的创建处理
 			AbstractRedisCache<Object, Object> abstractCache = null ;
-			if ("authentication".equals(name)) {	// 获得的是认证缓存
+			if ("authenticationCache".equals(name)) {	// 要获取的是认证缓存
 				abstractCache = new RedisCache<Object,Object>() ;
-				abstractCache.setConnectionFactory(this.connectionFactoryMap.get("authentication"));
-			} else if ("authorization".equals(name)) {	// 授权缓存
+				abstractCache.setConnectionFactory(this.connectionFactoryMap.get("authenticationCache"));
+			} else if ("authorizationCache".equals(name)) { // 获得授权缓存
 				abstractCache = new RedisCache<Object,Object>() ;
-				abstractCache.setConnectionFactory(this.connectionFactoryMap.get("authorization"));
-			} else if ("activeSessionCache".equals(name)) {
+				abstractCache.setConnectionFactory(this.connectionFactoryMap.get("authorizationCache"));
+			} else if ("activeSessionCache".equals(name)) { 	// 获得session缓存activeSessionCache
 				abstractCache = new RedisCache<Object,Object>() ;
 				abstractCache.setConnectionFactory(this.connectionFactoryMap.get("activeSessionCache"));
 			}
-			cache = abstractCache ; // 获得缓存对象
+			cache = abstractCache ;
+			CACHES.put(name, cache) ; // 防止随后重复取出
 		}
-		return cache ; 
+		return cache ;  
 	}	
-	// 此时需要管理多个Redis的连接控制，所以所有的连接通过外部配置
 	public void setConnectionFactoryMap(Map<String, JedisConnectionFactory> connectionFactoryMap) {
 		this.connectionFactoryMap = connectionFactoryMap;
 	}
